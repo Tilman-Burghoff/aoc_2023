@@ -1,5 +1,3 @@
-use std::default;
-
 fn main() {
     let data = include_str!("./data.txt");
     let result = process(data);
@@ -13,34 +11,37 @@ struct Pull {
     blue: u8
 }
 
-fn game_allowed(line: &str) -> bool {
-    line.split(';')
-        .map(|x| {
-            let mut result: Pull = Default::default();
-            for color in  x.split(',') {
-                let mut iter = color.trim().split(' ');
-                match (iter.next().unwrap(), iter.next().unwrap()) {
-                    (num, "red") => result.red = num.parse().unwrap(),
-                    (num, "green") => result.green = num.parse().unwrap(),
-                    (num, "blue") => result.blue = num.parse().unwrap(),
-                    _ => ()
-                }
-            };
-            result
-        })
-        .fold(true, |acc, x| acc && x.red <= 12 && x.green <= 13 && x.blue <= 14)
+fn parse_game(line: &str) -> impl Iterator<Item = Pull>+ '_{
+    line.split(';').map(|x| {
+        let mut result: Pull = Default::default();
+        for color in  x.split(',') {
+            match color.trim().split_once(' ').unwrap() {
+                (num, "red") => result.red = num.parse().unwrap(),
+                (num, "green") => result.green = num.parse().unwrap(),
+                (num, "blue") => result.blue = num.parse().unwrap(),
+                _ => ()
+            }
+        };
+        result
+    })
+}
+
+
+fn game_possible(line: &str) -> bool {
+    parse_game(line).all(|x| x.red <= 12 && x.green <= 13 && x.blue <= 14)
 }
 
 fn process(data: &str) -> usize {
     data.lines()
         .enumerate()
-        .fold(0, |acc, x| {
-            if game_allowed(x.1.split(':').last().unwrap()) {
-                acc + x.0 + 1
+        .map(|x| {
+            let game = x.1.split_once(':').unwrap().1;
+            if game_possible(game) {
+                x.0 + 1
             } else {
-                acc
+                0
             }
-        })
+        }).sum()
 }
 
 #[cfg(test)]

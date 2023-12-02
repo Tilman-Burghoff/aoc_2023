@@ -1,5 +1,3 @@
-use std::default;
-
 fn main() {
     let data = include_str!("./data.txt");
     let result = process(data);
@@ -13,22 +11,24 @@ struct Pull {
     blue: u32
 }
 
+fn parse_game(line: &str) -> impl Iterator<Item = Pull>+ '_{
+    line.split(';').map(|x| {
+        let mut result: Pull = Default::default();
+        for color in  x.split(',') {
+            match color.trim().split_once(' ').unwrap() {
+                (num, "red") => result.red = num.parse().unwrap(),
+                (num, "green") => result.green = num.parse().unwrap(),
+                (num, "blue") => result.blue = num.parse().unwrap(),
+                _ => ()
+            }
+        };
+        result
+    })
+}
+
 fn game_value(line: &str) -> u32 {
     let mut result = Pull::default();
-    for pull in line.split(';')
-        .map(|x| {
-            let mut result: Pull = Default::default();
-            for color in  x.split(',') {
-                let mut iter = color.trim().split(' ');
-                match (iter.next().unwrap(), iter.next().unwrap()) {
-                    (num, "red") => result.red = num.parse().unwrap(),
-                    (num, "green") => result.green = num.parse().unwrap(),
-                    (num, "blue") => result.blue = num.parse().unwrap(),
-                    _ => ()
-                }
-            };
-            result
-        }) {
+    for pull in parse_game(line) {
         if result.red < pull.red {
             result.red = pull.red
         }
