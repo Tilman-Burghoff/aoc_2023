@@ -24,7 +24,7 @@ fn process(data: &str) -> i32 {
                 .map(|n| n.parse().unwrap()).filter(|n| tup.1.contains(n))
                 .count()
         })
-        .map(|n| if n > 0 {2_i32.pow(n as u32 -1)} else {0}).sum()
+        .filter_map(|n| if n > 0 {Some(2_i32.pow(n as u32 -1))} else {None}).sum()
 }
 
 #[cfg(test)]
